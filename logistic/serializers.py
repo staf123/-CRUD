@@ -1,22 +1,19 @@
 from rest_framework import serializers
-from .models import Stock, Product, StockProduct
+from .models import Product, Stock, StockProduct
 
 
 class ProductSerializer(serializers.ModelSerializer):
     # настройте сериализатор для продукта
     class Meta:
         model = Product
-        fields = ['id', 'title', 'description']
-    pass
+        fields = '__all__'
 
 
 class ProductPositionSerializer(serializers.ModelSerializer):
     # настройте сериализатор для позиции продукта на складе
     class Meta:
         model = StockProduct
-        fields = '__all__'
-        read_only = ['stock']
-    pass
+        fields = ['product', 'quantity', 'price']
 
 
 class StockSerializer(serializers.ModelSerializer):
@@ -25,7 +22,8 @@ class StockSerializer(serializers.ModelSerializer):
     # настройте сериализатор для склада
     class Meta:
         model = Stock
-        fields = ["id", "address", "positions"]
+        fields = '__all__'
+
 
     def create(self, validated_data):
         # достаем связанные данные для других таблиц
@@ -37,8 +35,9 @@ class StockSerializer(serializers.ModelSerializer):
         # здесь вам надо заполнить связанные таблицы
         # в нашем случае: таблицу StockProduct
         # с помощью списка positions
-        for position in positions:
-            StockProduct.objects.create(stock=stock, **position)
+
+        for el in positions:
+            StockProduct.objects.create(stock=stock, **el)
 
         return stock
 
@@ -53,6 +52,10 @@ class StockSerializer(serializers.ModelSerializer):
         # в нашем случае: таблицу StockProduct
         # с помощью списка positions
 
-        for position in positions:
-            StockProduct.objects.update_or_create(stock=stock, **position)
+        for element in positions:
+            obj, created = StockProduct.objects.update_or_create(
+                stock=stock,
+                product=element['product'],
+                defaults={'stock': stock, 'product': element['product'], 'quantity': element['quantity'], 'price': element['price']}
+            )
         return stock
