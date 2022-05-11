@@ -20,10 +20,15 @@ class ProductViewSet(ModelViewSet):
 class StockViewSet(ModelViewSet):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
-    # при необходимости добавьте параметры фильтрации
+      # при необходимости добавьте параметры фильтрации
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['address']
     search_fields = ['address']
     ordering_fields = ['address']
-    pagination_class = 
+    pagination_class = PageNumberPagination
+    
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100
+}
